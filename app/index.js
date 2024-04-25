@@ -1,10 +1,10 @@
 import axios from 'axios'
-import cheerio from 'cheerio'
+import { load } from 'cheerio'
 import { writeFile, readFile } from 'fs/promises'
 import { resolve, dirname } from 'path'
 import { URL, fileURLToPath } from 'url'
 
-const BASE_URL = 'https://liquipedia.net/counterstrike'
+const BASE_URL = 'https://liquipedia.net'
 const furiaUrl = 'https://liquipedia.net/counterstrike/FURIA_Esports'
 const path = new URL(furiaUrl).pathname
 
@@ -82,4 +82,36 @@ const getHtmlFromLiquipedia = async (url, filePath) => {
     }
 }
 
+const getNextTornament = async (url, filePath) => {
+    try {
+        let cached = await readCachedFile(filePath)
+
+        if (!cached) {
+            cached = await getHtmlFromLiquipedia(url, filePath)
+        }
+
+        const $ = load(cached)
+        const nextTornamentLink = $(
+            '#mw-content-text > div > div.fo-nttax-infobox-wrapper.infobox-cs2 > div.fo-nttax-infobox.panel > table > tbody > tr:nth-child(2) > td > span > div > div'
+        )
+            .children()
+            .attr('href')
+
+        return nextTornamentLink
+    } catch (error) {
+        console.log(error)
+    }
+}
+
 getHtmlFromLiquipedia(furiaUrl, `${FILE_PATH}/${slug(`${path}`)}.html`)
+const nextTornamentLink = getNextTornament(
+    furiaUrl,
+    `${FILE_PATH}/${slug(`${path}`)}.html`
+)
+
+const getDataOfNextMatch = (url, filePath) => {
+    try {
+    } catch (error) {
+        console.error(error)
+    }
+}
