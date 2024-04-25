@@ -1,0 +1,19 @@
+{
+    "name": "requesthttp",
+    "version": "1.0.0",
+    "description": "",
+    "main": "app/index.js",
+    "type": "module",
+    "scripts": {
+        "start": "node .",
+        "dev": "node --watch --no-warnings .",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "axios": "^1.6.8",
+        "cheerio": "^1.0.0-rc.12"
+    }
+}
