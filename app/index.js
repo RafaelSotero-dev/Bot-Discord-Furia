@@ -123,9 +123,13 @@ const getDataOfNextMatch = async (url, filePath) => {
         }
 
         const $ = load(content)
-        const getPatentNode = $('[aria-label="FURIA Esports"]').parent()
+
+        const matchs = $('[aria-label="FURIA Esports"]')
+        const len = matchs.parent().length
+        const lastMatch = matchs.parent()[len - 1]
+
         let dataWithOutOffSet =
-            getPatentNode.children()[3].children[2].children[0].children[0]
+            lastMatch.children[3].children[2].children[0].children[0]
                 .children[0].children[0].data
 
         if (dataWithOutOffSet) {
