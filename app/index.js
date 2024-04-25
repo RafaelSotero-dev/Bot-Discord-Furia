@@ -18,6 +18,13 @@ const options = {
     },
 }
 
+const converterParaHorarioBrasilia = (data) => {
+    // Converter a data para o horário de Brasília (UTC-3)
+    var dataBrasilia = new Date(data)
+    dataBrasilia.setUTCHours(dataBrasilia.getUTCHours() - 3)
+    return dataBrasilia
+}
+
 const slug = (texto) => {
     return texto
         .toString()
@@ -84,13 +91,14 @@ const getHtmlFromLiquipedia = async (url, filePath) => {
 
 const getNextTornament = async (url, filePath) => {
     try {
-        let cached = await readCachedFile(filePath)
+        let content = await readCachedFile(filePath)
 
-        if (!cached) {
-            cached = await getHtmlFromLiquipedia(url, filePath)
+        if (!content) {
+            content = await request(url)
+            await writeCachedFile(filePath, content)
         }
 
-        const $ = load(cached)
+        const $ = load(content)
         const nextTornamentLink = $(
             '#mw-content-text > div > div.fo-nttax-infobox-wrapper.infobox-cs2 > div.fo-nttax-infobox.panel > table > tbody > tr:nth-child(2) > td > span > div > div'
         )
@@ -104,14 +112,52 @@ const getNextTornament = async (url, filePath) => {
 }
 
 getHtmlFromLiquipedia(furiaUrl, `${FILE_PATH}/${slug(`${path}`)}.html`)
-const nextTornamentLink = getNextTornament(
-    furiaUrl,
-    `${FILE_PATH}/${slug(`${path}`)}.html`
-)
 
-const getDataOfNextMatch = (url, filePath) => {
+const getDataOfNextMatch = async (url, filePath) => {
     try {
+        let content = await readCachedFile(filePath)
+
+        if (!content) {
+            content = await request(url)
+            await writeCachedFile(filePath, content)
+        }
+
+        const $ = load(content)
+        const getPatentNode = $('[aria-label="FURIA Esports"]').parent()
+        let dataWithOutOffSet =
+            getPatentNode.children()[3].children[2].children[0].children[0]
+                .children[0].children[0].data
+
+        if (dataWithOutOffSet) {
+            dataWithOutOffSet = String(dataWithOutOffSet).replace('-', '')
+
+            const dateWithoutOffSet = new Date(dataWithOutOffSet)
+            const newDate = dateWithoutOffSet.setUTCHours(
+                dateWithoutOffSet.getUTCHours() - 2
+            )
+
+            const dataBrasilia = converterParaHorarioBrasilia(newDate)
+
+            return (
+                'Data e hora em Brasília: ' +
+                dataBrasilia.toLocaleString('pt-BR', {
+                    timeZone: 'America/Sao_Paulo',
+                })
+            )
+        }
     } catch (error) {
         console.error(error)
     }
 }
+
+const nextTornamentLink = await getNextTornament(
+    furiaUrl,
+    `${FILE_PATH}/${slug(`${path}`)}.html`
+)
+
+const getDate = await getDataOfNextMatch(
+    `${BASE_URL}${nextTornamentLink}`,
+    `${FILE_PATH}/${slug(`${nextTornamentLink}`)}.html`
+)
+
+console.log(getDate)
