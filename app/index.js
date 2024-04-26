@@ -13,6 +13,10 @@ const path = new URL(furiaUrl).pathname
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const FILE_PATH = resolve(__dirname, '../cached')
 
+const TodayDate = new Date().toLocaleDateString().toLocaleString('pt-BR', {
+    timeZone: 'America/São Paulo',
+})
+
 const options = {
     Headers: {
         'User-Agent':
@@ -118,12 +122,21 @@ const getDataOfNextMatch = async (url, filePath) => {
                 dateWithoutOffSet.getUTCHours() - 2
             )
 
-            const dataBrasilia = converterParaHorarioBrasilia(newDate)
+            const dateBrasilia = converterParaHorarioBrasilia(newDate)
+            const dateBrasiliaToLocate = dateBrasilia
+                .toLocaleDateString()
+                .toLocaleString('pt-BR', {
+                    timeZone: 'America/São Paulo',
+                })
+
+            if (TodayDate > dateBrasiliaToLocate) {
+                return 'No match is available'
+            }
 
             return {
                 date:
                     'Data e hora em Brasília: ' +
-                    dataBrasilia.toLocaleString('pt-BR', {
+                    dateBrasilia.toLocaleString('pt-BR', {
                         timeZone: 'America/Sao_Paulo',
                     }),
                 teams: [
