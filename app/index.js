@@ -3,6 +3,8 @@ import { load } from 'cheerio'
 import { writeFile, readFile } from 'fs/promises'
 import { resolve, dirname } from 'path'
 import { URL, fileURLToPath } from 'url'
+import { slug } from './utils/slug.js'
+import { converterParaHorarioBrasilia } from './utils/brasiliaDateConvert.js'
 
 const BASE_URL = 'https://liquipedia.net'
 const furiaUrl = 'https://liquipedia.net/counterstrike/FURIA_Esports'
@@ -16,30 +18,6 @@ const options = {
         'User-Agent':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36',
     },
-}
-
-const converterParaHorarioBrasilia = (data) => {
-    // Converter a data para o horário de Brasília (UTC-3)
-    var dataBrasilia = new Date(data)
-    dataBrasilia.setUTCHours(dataBrasilia.getUTCHours() - 3)
-    return dataBrasilia
-}
-
-const slug = (texto) => {
-    return texto
-        .toString()
-        .toLowerCase()
-        .trim() // transforma texto para caixa baixa e remove espaços nas extremidades do texto
-        .replace(/\s+/g, '-') // substitui espaços por hífen
-        .replace(/[áàäâã]/g, 'a') // substitui caracteres especiais á à ä â ã por a
-        .replace(/[éèëê]/g, 'e') // substitui caracteres especiais é è ë ê  por e
-        .replace(/[íìîï]/g, 'i') // substitui caracteres especiais í ì î ï por i
-        .replace(/[óòöôõ]/g, 'o') // substitui caracteres especiais ó ò ö ô õ por o
-        .replace(/[úùüû]/g, 'u') // substitui caracteres especiais ú ù ü û por u
-        .replace(/ñ/g, 'n') // substitui caracteres especiais ñ por n
-        .replace(/ç/g, 'c') // substitui caracteres especiais ç por c
-        .replace(/[^\a-z0-9\-]+/g, '') // exclui caracteres que não seja alfanumérico
-        .replace(/\-\-+/g, '-') // substitui mutiplos hífens por hífen simples
 }
 
 const request = async (url) => {
@@ -111,7 +89,7 @@ const getNextTornament = async (url, filePath) => {
     }
 }
 
-getHtmlFromLiquipedia(furiaUrl, `${FILE_PATH}/${slug(`${path}`)}.html`)
+await getHtmlFromLiquipedia(furiaUrl, `${FILE_PATH}/${slug(`${path}`)}.html`)
 
 const getDataOfNextMatch = async (url, filePath) => {
     try {
