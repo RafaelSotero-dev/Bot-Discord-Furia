@@ -5,6 +5,7 @@ import { resolve, dirname } from 'path'
 import { URL, fileURLToPath } from 'url'
 import { slug } from './utils/slug.js'
 import { converterParaHorarioBrasilia } from './utils/brasiliaDateConvert.js'
+import discordClient from './discord/config.js'
 
 const BASE_URL = 'https://liquipedia.net'
 const furiaUrl = 'https://liquipedia.net/counterstrike/FURIA_Esports'
@@ -93,8 +94,6 @@ const getNextTornament = async (url, filePath) => {
     }
 }
 
-await getHtmlFromLiquipedia(furiaUrl, `${FILE_PATH}/${slug(`${path}`)}.html`)
-
 const getDataOfNextMatch = async (url, filePath) => {
     try {
         let content = await readCachedFile(filePath)
@@ -152,14 +151,28 @@ const getDataOfNextMatch = async (url, filePath) => {
     }
 }
 
-const nextTornamentLink = await getNextTornament(
-    furiaUrl,
-    `${FILE_PATH}/${slug(`${path}`)}.html`
-)
+const main = async () => {
+    try {
+        await getHtmlFromLiquipedia(
+            furiaUrl,
+            `${FILE_PATH}/${slug(`${path}`)}.html`
+        )
 
-const getDate = await getDataOfNextMatch(
-    `${BASE_URL}${nextTornamentLink}`,
-    `${FILE_PATH}/${slug(`${nextTornamentLink}`)}.html`
-)
+        const nextTornamentLink = await getNextTornament(
+            furiaUrl,
+            `${FILE_PATH}/${slug(`${path}`)}.html`
+        )
 
-console.log(getDate)
+        const getDate = await getDataOfNextMatch(
+            `${BASE_URL}${nextTornamentLink}`,
+            `${FILE_PATH}/${slug(`${nextTornamentLink}`)}.html`
+        )
+
+        console.log(getDate)
+    } catch (error) {}
+}
+
+discordClient.on('ready', async () => {
+    console.log(`Logged in as ${discordClient.user.tag}!`)
+    main()
+})
