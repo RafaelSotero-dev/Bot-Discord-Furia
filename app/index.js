@@ -142,13 +142,20 @@ const getDataOfNextMatch = async (url, filePath) => {
 
             const dataBrasilia = converterParaHorarioBrasilia(newDate)
 
-            return (
-                'Data e hora em Brasília: ' +
-                dataBrasilia.toLocaleString('pt-BR', {
-                    timeZone: 'America/Sao_Paulo',
-                })
-            )
+            return {
+                date:
+                    'Data e hora em Brasília: ' +
+                    dataBrasilia.toLocaleString('pt-BR', {
+                        timeZone: 'America/Sao_Paulo',
+                    }),
+                teams: [
+                    lastMatch.children[0].attribs['aria-label'],
+                    lastMatch.children[1].attribs['aria-label'],
+                ],
+            }
         }
+
+        return 'No match is available'
     } catch (error) {
         console.error(error)
     }
