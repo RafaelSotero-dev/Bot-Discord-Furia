@@ -2,3 +2,4 @@ node_modules
 cached/*.html
 .env
 .env_local
+README.MD

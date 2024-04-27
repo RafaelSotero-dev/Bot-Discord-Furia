@@ -201,7 +201,7 @@ const main = async () => {
         if (typeof getDate !== 'string') {
             const partMessage = String(getDate.date).split(',')
             const message = `${getDate.teams[0]} vs ${getDate.teams[1]}\n${partMessage[0]} as${partMessage[1]}\n`
-            console.log(message)
+
             const channel = discordClient.channels.cache.get(
                 '1233588684884807791'
             )
@@ -217,7 +217,7 @@ const main = async () => {
 discordClient.on('ready', async () => {
     console.log(`Logged in as ${discordClient.user.tag}!`)
     main()
-    // schedule('* * 1 * *', main, { timezone: 'America/Sao_Paulo' })
+    schedule('* * 1 * *', main, { timezone: 'America/Sao_Paulo' })
     schedule(
         '0 0 */1,5 * *',
         () => {
