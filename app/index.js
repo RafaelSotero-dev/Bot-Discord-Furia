@@ -219,7 +219,7 @@ discordClient.on('ready', async () => {
     main()
     schedule('* * 1 * *', main, { timezone: 'America/Sao_Paulo' })
     schedule(
-        '0 0 */1,5 * *',
+        '0 0 */36 * * *',
         () => {
             rm(`cached/${lastSavedPageFileName}`)
         },
