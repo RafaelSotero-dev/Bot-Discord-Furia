@@ -131,6 +131,8 @@ const getDataOfNextMatch = async (url, filePath) => {
 
             dataWithOutOffSet = String(dataWithOutOffSet).replace('-', '')
 
+            console.log(dataWithOutOffSet)
+
             const offSet = Number(
                 String(
                     lastMatch.children[lastChildren].children[2].children[0]
@@ -142,17 +144,29 @@ const getDataOfNextMatch = async (url, filePath) => {
                     .replace(':', '.')
             ).toFixed(0)
 
-            const dateWithoutOffSet = new Date(dataWithOutOffSet)
-            const newDate = dateWithoutOffSet.setUTCHours(
-                dateWithoutOffSet.getUTCHours() - offSet
+            const newDate = new Date(dataWithOutOffSet)
+
+            console.log(newDate)
+
+            const dataWithOffSet = newDate.setUTCHours(
+                newDate.getUTCHours() - offSet
             )
-            const dateBrasilia = converterParaHorarioBrasilia(newDate)
+
+            const dateBrasilia = converterParaHorarioBrasilia(dataWithOffSet)
+
+            console.log(dateBrasilia)
 
             const dateBrasiliaToLocate = dateBrasilia
                 .toLocaleDateString()
                 .toLocaleString('pt-BR', {
-                    timeZone: 'America/São Paulo',
+                    timeZone: 'America/Sao_Paulo',
                 })
+
+            console.log(
+                dateBrasilia.toLocaleString('pt-BR', {
+                    timeZone: 'America/Sao_Paulo',
+                })
+            )
 
             if (todayDate > dateBrasiliaToLocate) {
                 return 'No match is available'
@@ -198,31 +212,31 @@ const main = async () => {
             `${FILE_PATH}/${lastSavedPageFileName}`
         )
 
-        if (typeof getDate !== 'string') {
-            const partMessage = String(getDate.date).split(',')
-            const message = `${getDate.teams[0]} vs ${getDate.teams[1]}\n${partMessage[0]} as${partMessage[1]}\n`
+        // if (typeof getDate !== 'string') {
+        //     const partMessage = String(getDate.date).split(',')
+        //     const message = `${getDate.teams[0]} vs ${getDate.teams[1]}\n${partMessage[0]} as${partMessage[1]}\n`
 
-            const channel = discordClient.channels.cache.get(
-                '1233588684884807791'
-            )
-            console.log(message)
-            return channel.send(message)
-        }
+        //     const channel = discordClient.channels.cache.get(
+        //         '1233554278917083189'
+        //     )
+        //     console.log(message)
+        //     return channel.send(message)
+        // }
 
         console.log(getDate)
-        return channel.send(getDate)
+        // return channel.send(getDate)
     } catch (error) {}
 }
 main()
-discordClient.on('ready', async () => {
-    console.log(`Logged in as ${discordClient.user.tag}!`)
-    // main()
-    // schedule('* * 1 * *', main, { timezone: 'America/Sao_Paulo' })
-    schedule(
-        '0 0 */36 * * *',
-        () => {
-            rm(`cached/${lastSavedPageFileName}`)
-        },
-        { timezone: 'America/Sao_Paulo' }
-    )
-})
+// discordClient.on('ready', async () => {
+//     console.log(`Logged in as ${discordClient.user.tag}!`)
+//     main()
+//     schedule('* * 1 * *', main, { timezone: 'America/Sao_Paulo' })
+//     schedule(
+//         '0 0 */36 * * *',
+//         () => {
+//             rm(`cached/${lastSavedPageFileName}`)
+//         },
+//         { timezone: 'America/Sao_Paulo' }
+//     )
+// })
