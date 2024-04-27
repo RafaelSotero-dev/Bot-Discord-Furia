@@ -158,12 +158,6 @@ const getDataOfNextMatch = async (url, filePath) => {
                     timeZone: 'America/Sao_Paulo',
                 })
 
-            console.log(
-                dateBrasilia.toLocaleString('pt-BR', {
-                    timeZone: 'America/Sao_Paulo',
-                })
-            )
-
             if (todayDate > dateBrasiliaToLocate) {
                 return 'No match is available'
             }
@@ -208,31 +202,30 @@ const main = async () => {
             `${FILE_PATH}/${lastSavedPageFileName}`
         )
 
-        // if (typeof getDate !== 'string') {
-        //     const partMessage = String(getDate.date).split(',')
-        //     const message = `${getDate.teams[0]} vs ${getDate.teams[1]}\n${partMessage[0]} as${partMessage[1]}\n`
+        if (typeof getDate !== 'string') {
+            const partMessage = String(getDate.date).split(',')
+            const message = `${getDate.teams[0]} vs ${getDate.teams[1]}\n${partMessage[0]} as${partMessage[1]}\n${BASE_URL}${nextTornamentLink}`
 
-        //     const channel = discordClient.channels.cache.get(
-        //         '1233554278917083189'
-        //     )
-        //     console.log(message)
-        //     return channel.send(message)
-        // }
+            const channel = discordClient.channels.cache.get(
+                '1233554278917083189'
+            )
 
-        console.log(getDate)
-        // return channel.send(getDate)
+            return channel.send(message)
+        }
+
+        return channel.send(getDate)
     } catch (error) {}
 }
 main()
-// discordClient.on('ready', async () => {
-//     console.log(`Logged in as ${discordClient.user.tag}!`)
-//     main()
-//     schedule('* * 1 * *', main, { timezone: 'America/Sao_Paulo' })
-//     schedule(
-//         '0 0 */36 * * *',
-//         () => {
-//             rm(`cached/${lastSavedPageFileName}`)
-//         },
-//         { timezone: 'America/Sao_Paulo' }
-//     )
-// })
+discordClient.on('ready', async () => {
+    console.log(`Logged in as ${discordClient.user.tag}!`)
+    main()
+    schedule('* * 1 * *', main, { timezone: 'America/Sao_Paulo' })
+    schedule(
+        '0 0 */36 * * *',
+        () => {
+            rm(`cached/${lastSavedPageFileName}`)
+        },
+        { timezone: 'America/Sao_Paulo' }
+    )
+})
