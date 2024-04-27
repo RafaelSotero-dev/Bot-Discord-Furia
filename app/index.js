@@ -171,7 +171,7 @@ const getDataOfNextMatch = async (url, filePath) => {
                 date: dateBrasilia.toLocaleString('pt-BR', {
                     timeZone: 'America/Sao_Paulo',
                 }),
-                teams: [team, teams.attribs['aria-label']],
+                teams: [teamName, teams.attribs['aria-label']],
             }
         }
 
@@ -205,7 +205,7 @@ const main = async () => {
             const channel = discordClient.channels.cache.get(
                 '1233588684884807791'
             )
-
+            console.log(message)
             return channel.send(message)
         }
 
@@ -213,11 +213,11 @@ const main = async () => {
         return channel.send(getDate)
     } catch (error) {}
 }
-
+main()
 discordClient.on('ready', async () => {
     console.log(`Logged in as ${discordClient.user.tag}!`)
-    main()
-    schedule('* * 1 * *', main, { timezone: 'America/Sao_Paulo' })
+    // main()
+    // schedule('* * 1 * *', main, { timezone: 'America/Sao_Paulo' })
     schedule(
         '0 0 */36 * * *',
         () => {
