@@ -131,8 +131,6 @@ const getDataOfNextMatch = async (url, filePath) => {
 
             dataWithOutOffSet = String(dataWithOutOffSet).replace('-', '')
 
-            console.log(dataWithOutOffSet)
-
             const offSet = Number(
                 String(
                     lastMatch.children[lastChildren].children[2].children[0]
@@ -146,15 +144,13 @@ const getDataOfNextMatch = async (url, filePath) => {
 
             const newDate = new Date(dataWithOutOffSet)
 
-            console.log(newDate)
-
             const dataWithOffSet = newDate.setUTCHours(
                 newDate.getUTCHours() - offSet
             )
 
             const dateBrasilia = converterParaHorarioBrasilia(dataWithOffSet)
 
-            console.log(dateBrasilia)
+            dateBrasilia.setHours(dateBrasilia.getHours() + 3)
 
             const dateBrasiliaToLocate = dateBrasilia
                 .toLocaleDateString()
