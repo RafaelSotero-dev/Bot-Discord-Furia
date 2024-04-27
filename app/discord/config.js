@@ -1,5 +1,4 @@
 import { Client, GatewayIntentBits } from 'discord.js'
-import { schedule } from 'node-cron'
 
 const discordClient = new Client({
     intents: [GatewayIntentBits.GuildMessages, GatewayIntentBits.Guilds],

@@ -1,20 +1,24 @@
 import axios from 'axios'
 import { load } from 'cheerio'
-import { writeFile, readFile } from 'fs/promises'
+import { writeFile, readFile, rm } from 'fs/promises'
 import { resolve, dirname } from 'path'
 import { URL, fileURLToPath } from 'url'
 import { slug } from './utils/slug.js'
 import { converterParaHorarioBrasilia } from './utils/brasiliaDateConvert.js'
+import { schedule } from 'node-cron'
 import discordClient from './discord/config.js'
 
+let lastSavedPageFileName
+
+const team = 'FURIA_Esports'
 const BASE_URL = 'https://liquipedia.net'
-const furiaUrl = 'https://liquipedia.net/counterstrike/FURIA_Esports'
+const furiaUrl = `https://liquipedia.net/counterstrike/${team}`
 const path = new URL(furiaUrl).pathname
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const FILE_PATH = resolve(__dirname, '../cached')
 
-const TodayDate = new Date().toLocaleDateString().toLocaleString('pt-BR', {
+const todayDate = new Date().toLocaleDateString().toLocaleString('pt-BR', {
     timeZone: 'America/São Paulo',
 })
 
@@ -82,66 +86,92 @@ const getNextTornament = async (url, filePath) => {
         }
 
         const $ = load(content)
-        const nextTornamentLink = $(
-            '#mw-content-text > div > div.fo-nttax-infobox-wrapper.infobox-cs2 > div.fo-nttax-infobox.panel > table > tbody > tr:nth-child(2) > td > span > div > div'
+
+        let upcomingMatchesLink = $(
+            `#mw-content-text > div > div.fo-nttax-infobox-wrapper.infobox-cs2 > div.fo-nttax-infobox.panel > table > tbody > tr:nth-child(2) > td > span > div > div`
         )
             .children()
             .attr('href')
 
-        return nextTornamentLink
+        if (!upcomingMatchesLink) {
+            upcomingMatchesLink = $(
+                '#mw-content-text > div > div.fo-nttax-infobox-wrapper.infobox-cs2 > div.fo-nttax-infobox.wiki-bordercolor-light.noincludereddit > table:nth-child(2) > tbody > tr:nth-child(1) > td > a'
+            ).attr('href')
+        }
+
+        lastSavedPageFileName = `${slug(`${upcomingMatchesLink}`)}.html`
+        return upcomingMatchesLink
     } catch (error) {
-        console.log(error)
+        console.error(error)
     }
 }
 
 const getDataOfNextMatch = async (url, filePath) => {
     try {
         let content = await readCachedFile(filePath)
-
         if (!content) {
             content = await request(url)
             await writeCachedFile(filePath, content)
         }
 
         const $ = load(content)
+        const teamName = team.replace('_', ' ')
 
-        const matchs = $('[aria-label="FURIA Esports"]')
-        const len = matchs.parent().length
-        const lastMatch = matchs.parent()[len - 1]
+        const matchs = $(`[aria-label="${teamName}"]`)
 
-        let dataWithOutOffSet =
-            lastMatch.children[3].children[2].children[0].children[0]
-                .children[0].children[0].data
+        if (matchs.length) {
+            const len = matchs.parent().length
+            const lastMatch = matchs.parent()[len - 1]
 
-        if (dataWithOutOffSet) {
+            const lastChildren = lastMatch.children.length - 1
+
+            let dataWithOutOffSet =
+                lastMatch.children[lastChildren].children[2].children[0]
+                    .children[0].children[0].children[0].data
+
             dataWithOutOffSet = String(dataWithOutOffSet).replace('-', '')
+
+            const offSet = Number(
+                String(
+                    lastMatch.children[lastChildren].children[2].children[0]
+                        .children[0].children[0].children[0].next.attribs[
+                        'data-tz'
+                    ]
+                )
+                    .replace('+', '')
+                    .replace(':', '.')
+            ).toFixed(0)
 
             const dateWithoutOffSet = new Date(dataWithOutOffSet)
             const newDate = dateWithoutOffSet.setUTCHours(
-                dateWithoutOffSet.getUTCHours() - 2
+                dateWithoutOffSet.getUTCHours() - offSet
             )
-
             const dateBrasilia = converterParaHorarioBrasilia(newDate)
+
             const dateBrasiliaToLocate = dateBrasilia
                 .toLocaleDateString()
                 .toLocaleString('pt-BR', {
                     timeZone: 'America/São Paulo',
                 })
 
-            if (TodayDate > dateBrasiliaToLocate) {
+            if (todayDate > dateBrasiliaToLocate) {
                 return 'No match is available'
             }
 
+            const teams = lastMatch.children.find((ele) => {
+                if (
+                    ele.attribs['aria-label'] !== teamName &&
+                    ele.attribs['aria-label'] !== undefined
+                ) {
+                    return ele.attribs['aria-label']
+                }
+            })
+
             return {
-                date:
-                    'Data e hora em Brasília: ' +
-                    dateBrasilia.toLocaleString('pt-BR', {
-                        timeZone: 'America/Sao_Paulo',
-                    }),
-                teams: [
-                    lastMatch.children[0].attribs['aria-label'],
-                    lastMatch.children[1].attribs['aria-label'],
-                ],
+                date: dateBrasilia.toLocaleString('pt-BR', {
+                    timeZone: 'America/Sao_Paulo',
+                }),
+                teams: [team, teams.attribs['aria-label']],
             }
         }
 
@@ -165,14 +195,34 @@ const main = async () => {
 
         const getDate = await getDataOfNextMatch(
             `${BASE_URL}${nextTornamentLink}`,
-            `${FILE_PATH}/${slug(`${nextTornamentLink}`)}.html`
+            `${FILE_PATH}/${lastSavedPageFileName}`
         )
 
+        if (typeof getDate !== 'string') {
+            const partMessage = String(getDate.date).split(',')
+            const message = `${getDate.teams[0]} vs ${getDate.teams[1]}\n${partMessage[0]} as${partMessage[1]}\n`
+            console.log(message)
+            const channel = discordClient.channels.cache.get(
+                '1233588684884807791'
+            )
+
+            return channel.send(message)
+        }
+
         console.log(getDate)
+        return channel.send(getDate)
     } catch (error) {}
 }
 
 discordClient.on('ready', async () => {
     console.log(`Logged in as ${discordClient.user.tag}!`)
     main()
+    // schedule('* * 1 * *', main, { timezone: 'America/Sao_Paulo' })
+    schedule(
+        '0 0 */1,5 * *',
+        () => {
+            rm(`cached/${lastSavedPageFileName}`)
+        },
+        { timezone: 'America/Sao_Paulo' }
+    )
 })
