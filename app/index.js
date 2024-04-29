@@ -150,7 +150,7 @@ const getDataOfNextMatch = async (url, filePath) => {
 
             const dateBrasilia = converterParaHorarioBrasilia(dataWithOffSet)
 
-            dateBrasilia.setHours(dateBrasilia.getHours() + 3)
+            dateBrasilia.setHours(dateBrasilia.getHours() + 1)
 
             const dateBrasiliaToLocate = dateBrasilia
                 .toLocaleDateString()
