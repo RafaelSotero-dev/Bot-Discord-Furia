@@ -207,7 +207,7 @@ const main = async () => {
             const message = `${getDate.teams[0]} vs ${getDate.teams[1]}\n${partMessage[0]} as${partMessage[1]}\n${BASE_URL}${nextTornamentLink}`
 
             const channel = discordClient.channels.cache.get(
-                '1233554278917083189'
+                '1233588684884807791'
             )
 
             return channel.send(message)
